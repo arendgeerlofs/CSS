@@ -1,6 +1,7 @@
 import numpy as np
-import matplotlib.pyplot as plt
+from numba import jit
 
+@jit
 def BTW(size, threshold, time_steps, labda, h, ret='BTW'):
     """
     """
@@ -23,7 +24,7 @@ def BTW(size, threshold, time_steps, labda, h, ret='BTW'):
                         BTW_new[i][j] = BTW[i][j] + 0.99 * (labda * (k - BTW_spike_times[i-1][j]) + labda * (k - BTW_spike_times[i+1][j])
                                     + labda * (k - BTW_spike_times[i][j-1]) + labda * (k - BTW_spike_times[i][j+1])) + np.random.poisson(h)
         BTW = BTW_new.copy()
-        if ret = 'Param'
+        if ret == 'Param':
             if k % 10 == 0 and k > 1000:
                 k_points.append(k)
                 spikes.append(amount)
