@@ -5,7 +5,7 @@ import math
 from tqdm import tqdm
 from collections import Counter
 
-df = pd.read_csv("Desktop/Data_neuron.txt", names=['spike times'], sep=" ")
+df = pd.read_csv("Data_neuron.txt", names=['spike times'], sep=" ")
 in_vivo = df['spike times'][:9500]
 
 plt.bar(in_vivo, np.ones(len(in_vivo)))
@@ -41,3 +41,49 @@ def count_avalanches(bin_size, time_line, in_vivo):
     branching = np.mean(branching_params)
 
     return avalanches, branching
+
+
+bins = [2, 5, 10, 15, 20, 25, 50, 70, 110]
+avalanches_per_bin = {}
+branching_per_bin = {}
+for binn in bins:
+    avalanches_per_bin[binn], branching_per_bin[binn] = count_avalanches(bin_size=binn, time_line=time_line,
+                                                                         in_vivo=in_vivo)
+
+plt.figure(figsize=(11, 7))
+s1 = []
+for binn in bins:
+    s1.append(Counter(avalanches_per_bin[binn])[1])
+
+    frequency = Counter(avalanches_per_bin[binn])
+    frequency = dict(sorted(frequency.items()))
+    values, counts = zip(*frequency.items())
+    # Plotting the line graph
+    plt.loglog(values, counts, marker='o', linestyle='-', label=f'bin size={binn}')
+    # Adding labels and title
+    plt.xlabel('s, avalanche size')
+    plt.ylabel('f(s), frequency in absolute counts')
+    plt.title('Frequency plot of in vivo data')
+    plt.legend(loc='best')
+# Display the plot
+plt.plot(values, 1 / np.asarray(values), linestyle='--', label=r'power-law $\tau=1$')
+plt.legend()
+plt.show()
+
+plt.loglog(bins, s1, marker='o', linestyle='-')
+plt.xlabel('Bin size(ms)')
+plt.grid(True)
+plt.ylabel('f(s=1, bs)')
+plt.title('A different avalanche measure to assess criticality')
+plt.show()
+
+values_branch, counts_branch = zip(*branching_per_bin.items())
+plt.figure(figsize=(11, 6))
+plt.semilogx(values_branch, counts_branch, marker='o', linestyle='-', label=r'$\sigma^{*}$')
+plt.axhline(1, color='black', linestyle='--')
+plt.grid(True)
+plt.legend()
+plt.xlabel('Bin size(ms)')
+plt.ylabel(r'$\sigma^{*}$, Branching parameter ')
+plt.title(r'Estimated $\sigma^{*}$, changed with bin size')
+plt.show()
