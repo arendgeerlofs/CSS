@@ -6,7 +6,7 @@ def plotheatmap(u_k):
     plt.xlabel("x [inch]")
     plt.ylabel("y [inch]")
 
-    plt.pcolormesh(u_k, cmap=plt.cm.jet, vmin=0, vmax=4)
+    plt.pcolormesh(u_k, cmap=plt.cm.jet, vmin=0, vmax=1)
     cbar = plt.colorbar()
     cbar.ax.set_title('Spikes',fontsize=12)
 
