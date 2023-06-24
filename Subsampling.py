@@ -1,6 +1,8 @@
 import numpy as np
 
 def subsample(matrix, sort=1):
+    if sort == 0:
+        return np.ones(np.shape(matrix))
     sample = np.zeros(np.shape(matrix))
     size = 0
     dist = 0

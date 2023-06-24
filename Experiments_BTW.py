@@ -104,7 +104,7 @@ def animate(k, u):
 # anim = animation.FuncAnimation(plt.figure(), animate, interval=1, frames=frames, repeat=False)
 # anim.save("spike_heat.gif")
 
-def power_law_dist(size, configs, frames):
+def power_law_dist(size, configs, frames, subsample_sort=0):
     """
     Function that runs the simulation of the CA, plots the number of spikes per frame
     and the distribution of avalanche sizes. The function also performs a statistical test,
@@ -119,7 +119,7 @@ def power_law_dist(size, configs, frames):
     The function produces the aforementioned plots and plots the results of the statistical tests
     """
     for config in configs:
-        u = BTW(size, 0, frames + 500, config[1], 'Param', config[0])
+        u = BTW(size, 0, frames + 500, config[1], 'Param', config[0], subsample_sort)
 
         # plot the spikes
         time = u[0][10:]
@@ -157,7 +157,7 @@ def power_law_dist(size, configs, frames):
         plt.show()
 
 
-def branching_param_plot(configs, frames):
+def branching_param_plot(configs, frames, subsample_sort=0):
     """
     Function that runs the simulation of the CA and plots the branching parameter per bin,
     for all the different parameter configurations given by the user.
@@ -176,7 +176,7 @@ def branching_param_plot(configs, frames):
     store_data = {}
     plt.figure(figsize=(10, 6))
     for config in configs:
-        u = BTW(50, 0, frames + 500, config[1], 'Param', config[0])
+        u = BTW(50, 0, frames + 500, config[1], 'Param', config[0], subsample_sort)
         store_data[config] = u
         spikes_num = u[1][10:]
         bins = [1, 2, 4, 8, 16, 32]
@@ -253,12 +253,18 @@ power_law_configs = [(1, 1e-6), (0.95, 1e-4), (0, 8e-4)]
 measures_branch_configs = [(0.9, 0.0008), (0, 0.025), (0.99, 0.00002), (0.999, 0.00004), (1, 0.00001), (0.98, 0.00006),
                            (1, 9.25e-8)]
 
-# actual experiments and plots
+# actual experiments and plots without subsampling
 power_law_dist(size=50, frames=54500, configs=power_law_configs)
 stor_data = branching_param_plot(configs=measures_branch_configs, frames=54500)
 new_avalanche_measures(configs=measures_branch_configs, stored_data=stor_data)
+
 
 grid_sizes = [25, 35, 40]
 
 for size_grid in grid_sizes:
     power_law_dist(size=size_grid, configs=power_law_configs[0], frames=54500)
+
+# actual experiments and plots
+power_law_dist_100(size=50, frames=54500, configs=power_law_configs, subsample_sort = 1)
+stor_data_100 = branching_param_plot(configs=measures_branch_configs, frames=54500, subsample_sort = 1)
+new_avalanche_measures_100(configs=measures_branch_configs, stored_data=stor_data_100)
