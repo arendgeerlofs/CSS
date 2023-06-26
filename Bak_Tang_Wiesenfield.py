@@ -47,13 +47,13 @@ def BTW(size=50, threshold=0, time_steps=1000, h=0.91, ret='BTW', alpha=1, subsa
                 # update value
                 poi = generate_poisson(h, BTW[i][j])
                 BTW_new[i][j] = BTW[i][j] + poi
-                if j + 1 < 50:
+                if j + 1 < size:
                     if k - BTW_spike_times_last[i][j + 1] == 1:
                         BTW_new[i][j] += alpha
                 if j - 1 >= 0:
                     if k - BTW_spike_times_last[i][j - 1] == 1:
                         BTW_new[i][j] += alpha
-                if i + 1 < 50:
+                if i + 1 < size:
                     if k - BTW_spike_times_last[i + 1][j] == 1:
                         BTW_new[i][j] += alpha
                 if i - 1 >= 0:
