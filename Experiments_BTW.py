@@ -239,10 +239,10 @@ measures_branch_configs = [(1, 9.25e-8), (0.9, 0.0008), (0, 0.025), (0.99, 0.000
 # new_avalanche_measures(configs=measures_branch_configs, stored_data=stor_data)
 
 
-grid_sizes = [70]
-for size_grid in grid_sizes:
-    power_law_dist(size=size_grid, frames=52500, configs=power_law_configs)
+#grid_sizes = [70]
+#for size_grid in grid_sizes:
+#    power_law_dist(size=size_grid, frames=52500, configs=power_law_configs)
 
 # actual experiments and plots
 power_law_dist(size=50,  frames=52500, configs=power_law_configs[1:], subsample_sort = 1)
-stor_data_100 = branching_param_plot(configs=measures_branch_configs, frames=52500, subsample_sort = 1)
+#stor_data_100 = branching_param_plot(configs=measures_branch_configs, frames=52500, subsample_sort = 1)
