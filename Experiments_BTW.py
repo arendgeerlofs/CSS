@@ -11,25 +11,6 @@ import numpy as np
 from collections import Counter
 
 
-def subsampling_random(spikes_per_bin):
-    """
-    Function that performs random subsampling in the spikes per bin, for a simulation.
-    The function removes randomly some spikes in the non-zero bins.
-    By doing that, the random subsampling is implemented.
-
-    Input:
-    spikes_per_bin: list that contains the number of spikes per bin
-
-    Output:
-    spikes_per_bin: modified list, that also accounts for subsampling, in the way that was described above.
-    """
-    for i in range(len(spikes_per_bin)):
-        if spikes_per_bin[i] != 0:
-            spikes_per_bin[i] -= int(np.random.randint(low=0, high=spikes_per_bin[i]+1, size=1))
-
-    return spikes_per_bin
-
-
 def remove_zero_vals(tple):
     """
     Function that removes the avalanches of size zero (no avalanches) from a given tuple.
@@ -53,7 +34,7 @@ def remove_zero_vals(tple):
 
 
 # Temporal binning
-def bins_count(bin_size, spikes, subsampling=False):
+def bins_count(bin_size, spikes):
     """
     Function that divides the time of the simulation into bins of different (given) lenghts
 
@@ -71,8 +52,7 @@ def bins_count(bin_size, spikes, subsampling=False):
         group = spikes[i:i + bin_size]  # Slice the list to get the current group of elements
         group_sum = sum(group)  # Sum the elements in the current group
         avalanches_pot.append(group_sum)  # Append the group sum to the result list
-    if subsampling:
-        avalanches_pot = subsampling_random(avalanches_pot)
+
     f = lambda x: x == 0
     aval_proper = [i for k, g in groupby(avalanches_pot, f) for i in (g if k else (sum(g),))]
 
@@ -132,9 +112,8 @@ def power_law_dist(size, configs, frames, subsample_sort=0):
         # temporal binning
         bins = [1, 2, 4, 8, 16, 32]
         avalanches_per_bin = {}
-        subsample_p = True if config[1] > 1e-8 else False
         for binn in bins:
-            avalanches_per_bin[binn] = bins_count(bin_size=binn, spikes=spikes_num, subsampling=subsample_p)[0]
+            avalanches_per_bin[binn] = bins_count(bin_size=binn, spikes=spikes_num)[0]
 
             frequency = Counter(avalanches_per_bin[binn])
             frequency = dict(sorted(frequency.items()))
@@ -143,6 +122,9 @@ def power_law_dist(size, configs, frames, subsample_sort=0):
             # check if the plotted data actually follow a power law distribution
             fit_alpha, fit_loc, fit_scale = stats.powerlaw.fit(counts, loc=0)
             D, p = stats.kstest(counts, 'powerlaw', args=(fit_alpha, fit_loc, fit_scale))
+            if p > 0.05:
+                exponent = stats.powerlaw.fit(counts)[0]
+                print(f'The exponent of the power-law distribution is {exponent}')
             print(
                 f"for alpha={config[0]}, h={config[1]} and {binn} bins, the KS test statistic is {D}")  # Kolmogorov-Smirnov test statistic
             print(f"for alpha={config[0]}, h={config[1]} and {binn} bins, the p-value is {p}")  # p-value of the test
@@ -181,9 +163,8 @@ def branching_param_plot(configs, frames, subsample_sort=0):
         spikes_num = u[1][10:]
         bins = [1, 2, 4, 8, 16, 32]
         branches_per_bin = {}
-        subsample_p = True if config[1] > 1e-8 else False
         for binn in bins:
-            branches_per_bin[binn] = bins_count(bin_size=binn, spikes=spikes_num, subsampling=subsample_p)[1]
+            branches_per_bin[binn] = bins_count(bin_size=binn, spikes=spikes_num)[1]
 
         print(branches_per_bin.items())
         values_branch, counts_branch = zip(*branches_per_bin.items())
@@ -215,7 +196,7 @@ def new_avalanche_measures(configs, stored_data):
         bins = [1, 2, 4, 8, 16, 32]
         avalanches_per_bin = {}
         for binn in bins:
-            avalanches_per_bin[binn] = bins_count(bin_size=binn, spikes=spikes_num, subsampling=False)[0]
+            avalanches_per_bin[binn] = bins_count(bin_size=binn, spikes=spikes_num)[0]
 
         s1 = []
         for binn in bins:
@@ -248,23 +229,20 @@ def new_avalanche_measures(configs, stored_data):
     plt.show()
 
 
-# (1, 9.25e-8),
-power_law_configs = [(1, 1e-6), (0.95, 1e-4), (0, 8e-4)]
-measures_branch_configs = [(0.9, 0.0008), (0, 0.025), (0.99, 0.00002), (0.999, 0.00004), (1, 0.00001), (0.98, 0.00006),
-                           (1, 9.25e-8)]
+
+power_law_configs = [(1, 9.25e-8), (1, 1e-6), (0.95, 1e-4), (0, 8e-4)]
+measures_branch_configs = [(1, 9.25e-8), (0.9, 0.0008), (0, 0.025), (0.99, 0.000002), (0.999, 0.000004), (1, 0.000001), (0.98, 0.000009)]
 
 # actual experiments and plots without subsampling
-power_law_dist(size=50, frames=54500, configs=power_law_configs)
-stor_data = branching_param_plot(configs=measures_branch_configs, frames=54500)
-new_avalanche_measures(configs=measures_branch_configs, stored_data=stor_data)
+# power_law_dist(size=50, frames=52500, configs=power_law_configs)
+# stor_data = branching_param_plot(configs=measures_branch_configs, frames=52500)
+# new_avalanche_measures(configs=measures_branch_configs, stored_data=stor_data)
 
 
-grid_sizes = [25, 35, 40]
-
+grid_sizes = [70]
 for size_grid in grid_sizes:
-    power_law_dist(size=size_grid, configs=power_law_configs[0], frames=54500)
+    power_law_dist(size=size_grid, frames=52500, configs=power_law_configs)
 
 # actual experiments and plots
-power_law_dist_100(size=50, frames=54500, configs=power_law_configs, subsample_sort = 1)
-stor_data_100 = branching_param_plot(configs=measures_branch_configs, frames=54500, subsample_sort = 1)
-new_avalanche_measures_100(configs=measures_branch_configs, stored_data=stor_data_100)
+power_law_dist(size=50,  frames=52500, configs=power_law_configs[1:], subsample_sort = 1)
+stor_data_100 = branching_param_plot(configs=measures_branch_configs, frames=52500, subsample_sort = 1)
