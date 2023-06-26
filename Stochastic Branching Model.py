@@ -2,20 +2,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random
 from numba import jit
+from collections import Counter
 import matplotlib.animation as animation
 from matplotlib.animation import FuncAnimation
+
 @jit
-def choose_random_values(grid, num_values):
-    
-    # flatten the grid into a 1D array
-    flattened_grid = grid.flatten()
-
-    # Randomly choose num_values elements from the flattened grid
-    random_values = np.random.choice(flattened_grid, size=num_values, replace=False)
-
-    return random_values
-
-@jit            
 def subsample(matrix, sort: float=1):
     if sort == 0:
         return np.ones(np.shape(matrix))
@@ -53,19 +44,40 @@ def subsample(matrix, sort: float=1):
         print("Invalid subsampling type, possible options are 1-6")
     return sample
 
-def branching_model(alpha, k, h, pdiss,size,iterations,subsample_sort=1):
+def branching_model(alpha, k, h, pdiss,size,iterations):
+    """
+    Function that runs the Stochastic Branching model mapped on grid of neurons.
+    The simulation is ran for all different parameter configurations given by the user.
+    Main difference from BTW is that we consider random neighbors
+
+    Input
+    alpha: synaptic strength
+    k: number of neighbors
+    h: rate that changes the way that energy is conserved in the system
+    pdiss: probability that a neuron is projected outside of the grid
+    size: size of the grid (size x size)
+    iterations: number of iterations of the simulation
+
+    Output
+    grid: grid from last frame
+    grid_timed: grid from every frame
+    avalanche_list: list of starting and end point of an avalanche
+    aval_num: number of avalanches
+    """
+
     avalanche_list = []
     aval_num = []
     ID=0
     k_points = []
     spikes = []
+
     amount=0
     # Initialize the grid of neurons
     grid= np.zeros((size,size))
     grid_new = np.zeros((size, size))
     grid_ID = np.zeros((size, size))
     grid_timed = []
-    #NOTE: I need different initialisation
+
     # Initialising the grid with random 0 and 1
     random_indices = np.random.choice(size * size, size=1, replace=False)
     aaa =[]
@@ -73,7 +85,7 @@ def branching_model(alpha, k, h, pdiss,size,iterations,subsample_sort=1):
     grid.flat[random_indices] = 1
 
     activ_prob: float = alpha * (1 / k)
-    subsample_matrix = subsample(grid, subsample_sort)
+    # subsample_matrix = subsample(grid, subsample_sort)
     for t in range(iterations):
         if t % 1000==0:
             print(t)
@@ -94,25 +106,19 @@ def branching_model(alpha, k, h, pdiss,size,iterations,subsample_sort=1):
                     if np.random.random() < pdiss:
                                 grid[i][j] = 0
 
-                    
-                    
                     # Activate each postsynaptic neuron with probability p
                     #n_i.append(random.sample(k_ij,k))
-                    #NOTE: I need something that excluded the original value
                     kk = random.sample(k_ij,k)
-                         
-                            
+
                     for ij in kk:
                             if  np.random.poisson(h) < activ_prob:
                                 grid[ij[0],ij[1]] = 1
                                 grid[i][j] = 0
                                 k_points.append(k)
                                 spikes.append(amount)
-                                if subsample_matrix[i][j] == 1:
-                                    amount += 1
-                                    avalanche_list.append([(i,j), (ij[0],ij[1]),t])
-                              
-                    
+                                amount += 1
+                                avalanche_list.append([(i,j), (ij[0],ij[1]),t])
+
                             else:
                                 grid[ij[0],ij[1]] = 0
         if t>1:
@@ -122,19 +128,28 @@ def branching_model(alpha, k, h, pdiss,size,iterations,subsample_sort=1):
     return grid, grid_timed, avalanche_list,aval_num
 
 # Set the parameters
+#experiment by changing r
+
 alpha = 0.99
 k = 4
-r = 2.4
+# r = [2.3,2.4,2.45,2.5,2.55,2.6]
+r = 2.3
 pdiss = 0.001
 
 # Run the branching model
 grid,u,aval,num = branching_model(alpha, k, r, pdiss, 50, 20000)
 
 
-
 def plotheatmap(u_k, k):
-    plt.clf()
+    '''
+    Heat map for the values of the model's grid.
 
+    Input
+    k: the current frame
+    u_k: the grid at the current time frame k
+    '''
+
+    plt.clf()
     plt.xlabel("x ")
     plt.ylabel("y ")
 
@@ -142,32 +157,38 @@ def plotheatmap(u_k, k):
     cbar = plt.colorbar()
     cbar.ax.set_title('Spikes',fontsize=12)
 
-
-
     return plt
 
 def animate(k):
-    plt = plotheatmap(u[k], k)    
+    """
+    Function that is used for the animation of the time evolution of the model.
+    Input
+    k: current frame
+    """
+    plt = plotheatmap(u[k], k)
     plt.title(f'Spikes at Frame {k}')
-frames = 1000
-anim = animation.FuncAnimation(plt.figure(), animate, interval=1, frames=frames, repeat=False )
-anim.save("branching_heat.gif")
 
+# frames = 1000
+# anim = animation.FuncAnimation(plt.figure(), animate, interval=1, frames=frames, repeat=False )
+# anim.save("branching_heat.gif")
 
-
-plt.figure()
-plt.plot(num)
-plt.figure()
-plt.hist(num, bins=30)
-a =np.array(aval)
-
-
-
-
-            
-from collections import Counter
+a = np.array(aval)
 
 def count_avalanches_2(data):
+    '''
+    This function counts the avalanches in every frame of the SB model.
+    It does so by counting if there are neighboring neurons that spike.
+
+    Input
+    data: list of spikes that includes the beginning of the spike, the end and the frame it was on
+
+    Output
+    avalanche_count: list of unique avalanche identifiers.
+    avalanche_durations: list of durations corresponding to each avalanche.
+    is_in_aval: list indicating whether each frame is part of an avalanche.
+
+    '''
+
     avalanche_count = 0
     avalanche_durations = []
     is_in_aval = [int(n) for n in range(len(data))]
@@ -175,39 +196,35 @@ def count_avalanches_2(data):
       for i in range(100):
         if t+i < len(data) and data[t][1] == data[t+i][0] and data[t][2] == data[t+i][2] - 1:
            is_in_aval[t+i]=is_in_aval[t]
-            
 
-    
     avalanche_count = np.unique(is_in_aval)
     avalanche_durations=Counter(is_in_aval).values()
-    return avalanche_count, avalanche_durations,is_in_aval
+    return avalanche_count, avalanche_durations, is_in_aval
 
 avalanche_count, avalanche_durations_O, is_in_aval = count_avalanches_2(a)
 
 #print("Number of avalanches:", avalanche_count)
 #print("Avalanche durations:", avalanche_durations_O)
 from scipy.optimize import curve_fit
-def func_powerlaw(x, m, c, c0):
-    return c0 + x**m * c
 
-target_func = func_powerlaw
 plt.figure()
 plt.plot(avalanche_durations_O)
+plt.show()
+
 plt.figure()
 plt.hist(avalanche_durations_O, bins=30)
+plt.show()
 #sol2 = curve_fit(func_powerlaw, avalanche_count, avalanche_durations_O, p0 = np.asarray([-1,10**5,0]))
-
 plt.figure()
 
-bins_s=np.zeros(max(avalanche_durations_O)-1)
+bins_s = np.zeros(max(avalanche_durations_O)-1)
 bins=[]
 for i in range(1,max(avalanche_durations_O)):
     for j in range(len(avalanche_durations_O)):
-        if i==list(avalanche_durations_O)[j]:
-            bins_s[i-1]+=1
+        if i == list(avalanche_durations_O)[j]:
+            bins_s[i-1] += 1
     bins.append(i)
 
-    
-plt.loglog( bins,bins_s)
-
+plt.loglog(bins,bins_s)
+plt.show()
     
