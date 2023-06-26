@@ -28,7 +28,6 @@ def BTW(size=50, threshold=0, time_steps=1000, h=0.91, ret='BTW', alpha=1, subsa
     BTW_spike_times = np.full((size, size), -1)
 
     # neuron activation grid 
-    BTW_heatmap = np.zeros((50, 50))
     BTW_heatmap_list = []
 
     # get subsample
@@ -41,6 +40,7 @@ def BTW(size=50, threshold=0, time_steps=1000, h=0.91, ret='BTW', alpha=1, subsa
     # update the whole matrix for each time step and keep track of the amount of spikes per timestep
     pbar = tqdm(total=time_steps, position=0, leave=True)
     for k in range(1, time_steps):
+        BTW_heatmap = np.zeros((50, 50))
         amount = 0
         for i in range(np.shape(BTW)[0]):
             for j in range(np.shape(BTW)[1]):
@@ -67,8 +67,6 @@ def BTW(size=50, threshold=0, time_steps=1000, h=0.91, ret='BTW', alpha=1, subsa
                     BTW_spike_times[i][j] = k
                     if subsample_matrix[i][j] == 1:
                         amount += 1
-                else:
-                    BTW_heatmap[i][j] = 0
 
         BTW = BTW_new.copy()
         BTW_spike_times_last = BTW_spike_times.copy()
