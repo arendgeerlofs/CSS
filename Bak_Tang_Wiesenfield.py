@@ -23,12 +23,13 @@ def direct_neighbor(cell, neighbor):
             return True
     return False
 
-def inhibitory_neighbors(BTW_shape):
+def inhibitory_neighbors(BTW_shape, alpha):
     neighbor_dict = {}
     for i in range(BTW_shape[0]):
         for j in range(BTW_shape[1]):
             neighbor_list = []
-            for k in range(np.random.poisson(2)):
+            extra_neighbors = np.random.poisson(2)
+            for k in range(extra_neighbors):
                 added = False
                 while not added:
                     index_i = np.random.randint(BTW_shape[0])
@@ -37,8 +38,9 @@ def inhibitory_neighbors(BTW_shape):
                         if [index_i, index_j] not in neighbor_list:
                             neighbor_list.append([index_i, index_j])
                             added = True
+            alpha[i][j] = (alpha[i][j]*4) / (4 + extra_neighbors)
             neighbor_dict[str(i) + " - " + str(j)] = neighbor_list
-    return neighbor_dict
+    return neighbor_dict, alpha
 
 
 def BTW(size=50, threshold=0, time_steps=1000, h=0.91, ret='BTW', alpha=1, subsample_sort=0, refractory = False, inhibitory = False):
@@ -48,10 +50,11 @@ def BTW(size=50, threshold=0, time_steps=1000, h=0.91, ret='BTW', alpha=1, subsa
     # initialize grid for k and k+1
     BTW = np.random.normal(-2, 1, (size, size))
     BTW_new = np.zeros((size, size))
+    alpha = np.full((size, size), alpha)
 
     #initialize extra neighbors
     if inhibitory:
-        neighbor_dict = inhibitory_neighbors(np.shape(BTW))
+        neighbor_dict, alpha = inhibitory_neighbors(np.shape(BTW), alpha)
 
     # initialize neuron spike for k and k-1
     BTW_spike_times_last = np.full((size, size), -1)
@@ -75,25 +78,25 @@ def BTW(size=50, threshold=0, time_steps=1000, h=0.91, ret='BTW', alpha=1, subsa
         for i in range(np.shape(BTW)[0]):
             for j in range(np.shape(BTW)[1]):
                 # update value
-                if BTW_spike_times[i][j] - k > 10 or k < 10 or not refractory:
+                if k - BTW_spike_times[i][j] > 10 or k < 10 or not refractory:
                     poi = generate_poisson(h, BTW[i][j])
                     BTW_new[i][j] = BTW[i][j] + poi
                     if j + 1 < size:
                         if k - BTW_spike_times_last[i][j + 1] == 1:
-                            BTW_new[i][j] += alpha
+                            BTW_new[i][j] += alpha[i][j]
                     if j - 1 >= 0:
                         if k - BTW_spike_times_last[i][j - 1] == 1:
-                            BTW_new[i][j] += alpha
+                            BTW_new[i][j] += alpha[i][j]
                     if i + 1 < size:
                         if k - BTW_spike_times_last[i + 1][j] == 1:
-                            BTW_new[i][j] += alpha
+                            BTW_new[i][j] += alpha[i][j]
                     if i - 1 >= 0:
                         if k - BTW_spike_times_last[i - 1][j] == 1:
-                            BTW_new[i][j] += alpha
+                            BTW_new[i][j] += alpha[i][j]
                 if inhibitory:
                     for neighbor in neighbor_dict[str(i) + " - " + str(j)]:
                         if k - BTW_spike_times_last[neighbor[0]][neighbor[1]] == 1:
-                            BTW_new[i][j] += alpha
+                            BTW_new[i][j] += alpha[i][j]
                     
                 # update again if it activates
                 if BTW_new[i][j] > threshold:
@@ -120,5 +123,3 @@ def BTW(size=50, threshold=0, time_steps=1000, h=0.91, ret='BTW', alpha=1, subsa
     if ret == 'Param':
         return k_points, spikes
     return BTW
-
-BTW(50, 0, 50, 0.0001, 'Heat', 1, inhibitory=True)
