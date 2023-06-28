@@ -6,6 +6,8 @@ In this project, we aim to identify the necessary and sufficient conditions for 
 
 Below is an example of spiking activity of neurons in a simulation. The neurons are organised in a 50x50 square lattice. A neuron spikes when its Voltage membrane surpasses the defined threshold. 
 In this simulation of the system, where there is a slow drive (h>0), one can observe the spatial propagation of spikes during successive time frames. 
+
+
 ![driven_avalanche_simulation](https://github.com/arendgeerlofs/CSS/assets/113594011/d2b5da60-7f12-4510-ba7b-6f978052a5e2)
 
 
