@@ -11,6 +11,8 @@ In this simulation of the system, where there is a slow drive (h>0), one can obs
 ![driven_avalanche_simulation](https://github.com/arendgeerlofs/CSS/assets/113594011/d2b5da60-7f12-4510-ba7b-6f978052a5e2)
 
 
+Performing such a simulation, one can measure the avalanche size distribution, the mean avalanche size, the branching parameter and the frequency of avalanches of size 1, for different configurations of parameter and different discretisation of the time frame.
+
 ## Requirements
 In order to run the simulation properly, please make sure to install the following package requirements by `pip install -r requirements.txt` .
 
