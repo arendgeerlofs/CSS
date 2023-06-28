@@ -4,6 +4,7 @@ Complex System Simulation course 2023 - Group 3
 This is the implementation of our project for the course of Complex Systems Simulation. 
 In this project, we aim to identify the necessary and sufficient conditions for SOC to occur in the human brain.
 
+Below is an example of spiking activity of neurons in a simulation. The neurons are 
 ![driven_avalanche_simulation](https://github.com/arendgeerlofs/CSS/assets/113594011/d2b5da60-7f12-4510-ba7b-6f978052a5e2)
 
 
