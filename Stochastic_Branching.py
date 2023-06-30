@@ -6,7 +6,7 @@ from collections import Counter
 from Subsampling import subsample
 
 @jit
-def branching_model(alpha, k, h, pdiss,size,iterations,subsample_sort=3):
+def branching_model(alpha, k, h, pdiss,size, iterations, subsample_sort=3):
     """
     Function that runs the Stochastic Branching model mapped on grid of neurons.
     The simulation is ran for all different parameter configurations given by the user.
@@ -60,7 +60,7 @@ def branching_model(alpha, k, h, pdiss,size,iterations,subsample_sort=3):
                          
                             
                     for ij in kk:
-                            if  np.random.poisson(h) < activ_prob:
+                            if  np.random.poisson(h) > activ_prob:
                                 grid[ij[0],ij[1]] = 1
                                 grid[i][j] = 0
                                 if subsample_matrix[i][j] == 1:
