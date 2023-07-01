@@ -1,20 +1,30 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-def plotheatmap(u_k):
+def plotheatmap(matrix):
+    """
+    Function that plots heatmap of spiking neurons in a matrix
+
+    Input
+    matrix: NxN matrix of neuron values
+
+    Output
+    plt: heatmap figure
+    """
     plt.clf()
 
-    plt.xlabel("x [inch]")
-    plt.ylabel("y [inch]")
-    for i in range(np.shape(u_k)[0]):
-        for j in range(np.shape(u_k)[1]):
-            if u_k[i][j] > 0:
-                u_k[i][j] = 1
+    plt.xlabel("x")
+    plt.ylabel("y")
+    # transform matrix to spiking and non-spiking neurons
+    for i in range(np.shape(matrix)[0]):
+        for j in range(np.shape(matrix)[1]):
+            if matrix[i][j] > 0:
+                matrix[i][j] = 1
             else:
-                u_k[i][j] = 0
+                matrix[i][j] = 0
 
-
-    plt.pcolormesh(u_k, cmap=plt.cm.jet, vmin=0, vmax=1)
+    # create heatmap
+    plt.pcolormesh(matrix, cmap=plt.cm.jet, vmin=0, vmax=1)
     cbar = plt.colorbar()
     cbar.ax.set_title('Spikes',fontsize=12)
 
